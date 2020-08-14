@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 
 namespace grpc_service
 {
@@ -21,6 +23,15 @@ namespace grpc_service
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                    {
+                        webBuilder.ConfigureKestrel(options =>
+                        {
+                            // Setup a HTTP/2 endpoint without TLS.
+                            options.ListenLocalhost(5000, o => o.Protocols =
+                                HttpProtocols.Http2);
+                        });
+                    }
                     webBuilder.UseStartup<Startup>();
                 });
     }
